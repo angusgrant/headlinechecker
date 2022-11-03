@@ -387,7 +387,7 @@
             padding: 1px 3px
         }
 
-        .headlines-container,
+    
         .james {
             background-color: #000;
             color: #fbf857
@@ -395,7 +395,8 @@
 
         .headlines-container {
             display: grid;
-            padding: 0 20px 0 10px
+            padding: 0 20px 0 10px;
+            color: #fbf857;
         }
 
         .social-media {
@@ -602,6 +603,13 @@
                 margin-bottom: 10px
             }
         }
+
+        .updatedanimation {
+            background-color: white;
+        }
+        .updatedanimation .headlineTitle {
+            color:#333;
+        }
     </style>
 </head>
 
@@ -695,6 +703,7 @@
                             </div>
                         </a>
                     -->
+                    <div class="spacer"></div>
                    
                     <div class="footer">
                         <div class="copyright">
@@ -721,6 +730,9 @@
                     updatedAt.classList.add('loadtext');
                     updatedAt.innerHTML = 'Updating as we speak';
 
+                    //do existing titles already exist
+                    const headlineTitle = document.querySelectorAll('.headlineTitle');
+
                     const response = await fetch(jsonEndpoint);
                     if (!response.ok){
                         throw response.status;
@@ -730,25 +742,46 @@
 
                     //check if some data exists
                     if (data.data[0].headline){
-                    
+                        console.log(headlineTitle.length);
                         const UpdateTimeDateArray = data.data[0].updated.split(" ");
                         //append to template literal string use MAP function to augment the array of Articles into HTML
-                        htmlToAppend = `
-                        ${data.data.map(function(article) {
-                            return `<a href="${article.link}">
-                                        <div class="headlines-container">
-                                            <div class="newspaperTitle">${article.paper} </div>
-                                            <div>
-                                                  <span class="headlineTitle">${article.headline}</span>
+                        if (headlineTitle.length === 0) {
+                            //first time no entries so update all items 
+                            htmlToAppend = `
+                            ${data.data.map(function(article) {
+                                return `<a href="${article.link}" id="articlePaper${article.id}">
+                                            <div class="headlines-container">
+                                                <div class="newspaperTitle">${article.paper}</div>
+                                                <div>
+                                                    <span class="headlineTitle">${article.headline}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </a>`
-                        }).join('')}
-                       `;
-                       //end template literal string
+                                        </a>`
+                            }).join('')}
+                        `;
+                        //end template literal string
 
-                       //append to the DOM app element
-                        appendPoint.innerHTML = htmlToAppend;
+                            //append to the DOM app element
+                            appendPoint.innerHTML = htmlToAppend;
+                        } else {
+
+                            //else we are going to loop through each of the entries in the JSON object and compare it with the DOM
+                            //if the same then don't update if different then update. 
+                            data.data.map(function(article, index) {
+                                console.log('html title:'+ headlineTitle[index].textContent + '  jsonTitle' + article.headline);
+                                if (headlineTitle[index].textContent != article.headline) {
+                                    document.getElementById(`articlePaper${article.id}`).outerHTML = `
+                                        <a href="${article.link}" id="articlePaper${article.id}" class="updatedanimation">
+                                            <div class="headlines-container">
+                                                <div class="newspaperTitle">${article.paper}</div>
+                                                <div>
+                                                    <span class="headlineTitle">${article.headline}</span>
+                                                </div>
+                                            </div>
+                                        </a>`
+                                    }
+                            });
+                        }
 
                         //remove animating loader class     
                         updatedAt.classList.remove('loadtext');
